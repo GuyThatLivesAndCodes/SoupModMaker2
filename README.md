@@ -18,11 +18,28 @@ SoupModMaker2 is an open-source Minecraft mod creation tool designed to surpass 
 
 ## Status
 
-**Current Phase:** Research & Planning ✅
+**Current Phase:** Phase 2 Complete - Working Forge 1.12.2 Generator! ✅
 
-We have completed comprehensive research on MCreator and defined the vision for SoupModMaker2.
+SoupModMaker2 can now generate complete, buildable Forge 1.12.2 mods with clean code!
 
 ---
+
+## Quick Start
+
+```bash
+# Build the project
+gradle build
+
+# Run the demo (generates a test mod)
+gradle run
+
+# Generate from example workspace
+gradle run --args="--full-demo"
+
+# Check generated mod
+cd generated/testmod
+gradle build  # Build the generated Forge mod!
+```
 
 ## Documentation
 
@@ -31,6 +48,7 @@ We have completed comprehensive research on MCreator and defined the vision for 
 
 ### Planning
 - **[SoupModMaker2 Vision](docs/SOUPMODMAKER2_VISION.md)** - Project vision, goals, and design philosophy
+- **[Architecture](docs/ARCHITECTURE.md)** - Technical architecture and design decisions
 
 ---
 
@@ -91,22 +109,30 @@ SoupModMaker2/
 │   ├── SOUPMODMAKER2_VISION.md   # Project vision and goals
 │   └── ARCHITECTURE.md            # Technical architecture
 ├── src/
-│   ├── main/java/com/soupmodmaker/
-│   │   ├── core/
-│   │   │   ├── workspace/         # Workspace management
-│   │   │   │   ├── elements/      # Mod elements (items, blocks, etc.)
-│   │   │   ├── codegen/           # Code generation engine
-│   │   │   ├── templates/         # Template management (future)
-│   │   │   └── export/            # Mod export (future)
-│   │   ├── generators/            # Version-specific generators (future)
-│   │   ├── util/                  # Utilities
-│   │   └── cli/                   # Command-line interface
-│   └── test/java/                 # Unit tests (future)
+│   ├── main/
+│   │   ├── java/com/soupmodmaker/
+│   │   │   ├── core/
+│   │   │   │   ├── workspace/         # Workspace management ✅
+│   │   │   │   │   └── elements/      # Mod elements (Items ✅)
+│   │   │   │   ├── codegen/           # Code generation engine ✅
+│   │   │   │   ├── templates/         # Template management ✅
+│   │   │   │   └── export/            # Mod export ✅
+│   │   │   ├── generators/            # Version-specific generators ✅
+│   │   │   │   └── impl/              # Forge 1.12.2 ✅
+│   │   │   ├── util/                  # Utilities
+│   │   │   └── cli/                   # Command-line interface ✅
+│   │   └── resources/
+│   │       └── templates/
+│   │           └── forge-1.12.2/      # FreeMarker templates ✅
+│   └── test/java/                     # Unit tests (future)
+├── .github/workflows/
+│   ├── build.yml                      # CI/CD build workflow ✅
+│   └── generate-mod.yml               # Test mod generation ✅
 ├── examples/
-│   └── example-workspace.json     # Example workspace file
-├── build.gradle.kts               # Gradle build configuration
-├── settings.gradle.kts            # Gradle settings
-└── README.md                      # This file
+│   └── example-workspace.json         # Example workspace file ✅
+├── build.gradle.kts                   # Gradle build configuration ✅
+├── settings.gradle.kts                # Gradle settings ✅
+└── README.md                          # This file
 ```
 
 ---
@@ -123,11 +149,13 @@ SoupModMaker2/
 - [x] Create proof-of-concept code generator
 - [x] Demonstrate clean code generation
 
-### Phase 2: Core Functionality
-- [ ] Workspace management
-- [ ] Basic mod element types
-- [ ] Code generation engine
-- [ ] Resource management
+### Phase 2: Core Functionality ✅ COMPLETE
+- [x] Workspace management (JSON loading/saving)
+- [x] Basic mod element types (Items)
+- [x] Code generation engine (FreeMarker templates)
+- [x] Forge 1.12.2 generator (complete mod generation)
+- [x] Resource management (templates, mcmod.info)
+- [x] Build system integration
 
 ### Phase 3: Advanced Features
 - [ ] Advanced mob AI builder
