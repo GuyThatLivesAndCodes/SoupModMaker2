@@ -33,12 +33,28 @@ java -cp soupmodmaker2-all-0.1.0-SNAPSHOT.jar com.soupmodmaker.cli.SoupModMakerC
 
 ### What It Does
 
-SoupModMaker2 provides a **graphical user interface** for creating Minecraft mods:
+SoupModMaker2 provides a **project-based workflow** for creating Minecraft mods:
 
-1. **Design your mod** - Set mod name, ID, version, author, and description
-2. **Add items** - Create custom items with configurable properties
-3. **Generate clean code** - Produces professional Java code (better than MCreator!)
-4. **Choose output location** - Save your generated mod project anywhere you want
+**Main Menu:**
+- View all your mod projects in one place
+- Projects are stored in `Documents/SoupModMaker2/Projects/`
+- Create, open, edit, or delete projects
+
+**Create New Project:**
+- Set mod name, ID, Minecraft version, and mod loader
+- Choose your author name
+- Project is automatically saved and ready to edit
+
+**Workspace Editor:**
+- Add items with configurable properties
+- Edit mod settings (version, description, etc.)
+- Auto-saves your work as you go
+- Generate clean, professional Java code when ready
+
+**Generate Mod:**
+- Export your mod project to any location
+- Produces complete, buildable Forge mod projects
+- Includes all necessary files and gradle wrapper
 
 The CLI mode (for developers) demonstrates the code generation pipeline.
 

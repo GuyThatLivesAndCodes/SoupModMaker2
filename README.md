@@ -40,10 +40,11 @@ java -jar soupmodmaker2-all-0.1.0-SNAPSHOT.jar
 startup.bat         # Windows
 ```
 
-The GUI provides an intuitive interface for:
-- Setting up mod workspace (name, ID, version, author)
-- Adding items with configurable properties
-- Generating complete Forge 1.12.2 mod projects
+The GUI provides a **project-based workflow** with:
+- **Main Menu** - Manage all your mod projects from `Documents/SoupModMaker2/Projects/`
+- **Project Creation** - Quick setup with mod name, version, and loader selection
+- **Workspace Editor** - Add items, edit settings, auto-save your work
+- **Mod Generation** - Export complete, buildable Forge 1.12.2 projects
 
 See **[DISTRIBUTION.md](DISTRIBUTION.md)** for full usage guide.
 

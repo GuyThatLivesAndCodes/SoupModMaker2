@@ -17,11 +17,16 @@ import java.io.File;
 import java.nio.file.Path;
 
 /**
- * Main window for SoupModMaker2 GUI.
- * Provides interface for workspace creation and mod generation.
+ * Workspace editor window for editing mod projects.
+ * Allows adding/removing items and generating mods.
  */
-public class MainWindow extends JFrame {
-    private static final Logger logger = LoggerFactory.getLogger(MainWindow.class);
+public class WorkspaceEditorWindow extends JFrame {
+    private static final Logger logger = LoggerFactory.getLogger(WorkspaceEditorWindow.class);
+
+    // Workspace management
+    private final WorkspaceManager.ProjectInfo projectInfo;
+    private final WorkspaceManager workspaceManager;
+    private final Workspace workspace;
 
     // Workspace settings fields
     private JTextField modNameField;
@@ -29,41 +34,32 @@ public class MainWindow extends JFrame {
     private JTextField versionField;
     private JTextField authorField;
     private JTextArea descriptionArea;
-    private JComboBox<String> minecraftVersionCombo;
+    private JLabel minecraftVersionLabel;
 
     // Items table
     private DefaultTableModel itemsTableModel;
     private JTable itemsTable;
 
-    // Current workspace
-    private Workspace workspace;
+    public WorkspaceEditorWindow(WorkspaceManager.ProjectInfo projectInfo, WorkspaceManager workspaceManager) {
+        this.projectInfo = projectInfo;
+        this.workspaceManager = workspaceManager;
+        this.workspace = projectInfo.getWorkspace();
 
-    public MainWindow() {
-        initializeWorkspace();
         initializeUI();
-    }
-
-    private void initializeWorkspace() {
-        workspace = new Workspace();
-        workspace.setName("MyMod");
-        workspace.setModId("mymod");
-
-        WorkspaceSettings settings = new WorkspaceSettings();
-        settings.setVersion("1.0.0");
-        settings.setAuthor("YourName");
-        settings.setDescription("A cool Minecraft mod!");
-        settings.setJavaPackage("com.example.mymod");
-        workspace.setSettings(settings);
-
-        workspace.setMinecraftVersion("1.12.2");
-        workspace.setModLoader("forge");
+        loadWorkspaceData();
     }
 
     private void initializeUI() {
-        setTitle("SoupModMaker2 - Better Minecraft Mod Maker");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("SoupModMaker2 - Editing: " + workspace.getName());
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                closeEditor();
+            }
+        });
         setSize(900, 700);
-        setLocationRelativeTo(null); // Center on screen
+        setLocationRelativeTo(null);
 
         // Main panel with padding
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
@@ -79,7 +75,7 @@ public class MainWindow extends JFrame {
         centerPanel.add(createItemsPanel());
         mainPanel.add(centerPanel, BorderLayout.CENTER);
 
-        // Bottom panel with generate button
+        // Bottom panel with buttons
         JPanel bottomPanel = createBottomPanel();
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
@@ -90,14 +86,14 @@ public class MainWindow extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
-        JLabel titleLabel = new JLabel("SoupModMaker2");
+        JLabel titleLabel = new JLabel(workspace.getName());
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         panel.add(titleLabel, BorderLayout.WEST);
 
-        JLabel subtitleLabel = new JLabel("Create Minecraft mods with clean, professional code");
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        subtitleLabel.setForeground(Color.GRAY);
-        panel.add(subtitleLabel, BorderLayout.SOUTH);
+        JLabel pathLabel = new JLabel("Project: " + projectInfo.getPath());
+        pathLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        pathLabel.setForeground(Color.GRAY);
+        panel.add(pathLabel, BorderLayout.SOUTH);
 
         return panel;
     }
@@ -113,45 +109,59 @@ public class MainWindow extends JFrame {
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
         panel.add(new JLabel("Mod Name:"), gbc);
         gbc.gridx = 1; gbc.weightx = 1;
-        modNameField = new JTextField(workspace.getName());
+        modNameField = new JTextField();
+        modNameField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent e) { saveWorkspace(); }
+        });
         panel.add(modNameField, gbc);
 
-        // Row 0: Mod ID
+        // Row 0: Mod ID (read-only)
         gbc.gridx = 2; gbc.weightx = 0;
         panel.add(new JLabel("Mod ID:"), gbc);
         gbc.gridx = 3; gbc.weightx = 1;
-        modIdField = new JTextField(workspace.getModId());
+        modIdField = new JTextField();
+        modIdField.setEditable(false);
+        modIdField.setBackground(new Color(240, 240, 240));
         panel.add(modIdField, gbc);
 
         // Row 1: Version
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
         panel.add(new JLabel("Version:"), gbc);
         gbc.gridx = 1; gbc.weightx = 1;
-        versionField = new JTextField(workspace.getSettings().getVersion());
+        versionField = new JTextField();
+        versionField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent e) { saveWorkspace(); }
+        });
         panel.add(versionField, gbc);
 
         // Row 1: Author
         gbc.gridx = 2; gbc.weightx = 0;
         panel.add(new JLabel("Author:"), gbc);
         gbc.gridx = 3; gbc.weightx = 1;
-        authorField = new JTextField(workspace.getSettings().getAuthor());
+        authorField = new JTextField();
+        authorField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent e) { saveWorkspace(); }
+        });
         panel.add(authorField, gbc);
 
-        // Row 2: Minecraft Version
+        // Row 2: Minecraft Version (read-only display)
         gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
         panel.add(new JLabel("Minecraft Version:"), gbc);
         gbc.gridx = 1; gbc.weightx = 1;
-        minecraftVersionCombo = new JComboBox<>(new String[]{"1.12.2", "1.8.9", "1.7.10"});
-        minecraftVersionCombo.setSelectedItem(workspace.getMinecraftVersion());
-        panel.add(minecraftVersionCombo, gbc);
+        minecraftVersionLabel = new JLabel();
+        minecraftVersionLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        panel.add(minecraftVersionLabel, gbc);
 
         // Row 3: Description (spans full width)
         gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
         panel.add(new JLabel("Description:"), gbc);
         gbc.gridx = 1; gbc.gridwidth = 3; gbc.weightx = 1;
-        descriptionArea = new JTextArea(workspace.getSettings().getDescription(), 3, 20);
+        descriptionArea = new JTextArea(3, 20);
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
+        descriptionArea.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent e) { saveWorkspace(); }
+        });
         JScrollPane descScroll = new JScrollPane(descriptionArea);
         panel.add(descScroll, gbc);
 
@@ -166,7 +176,7 @@ public class MainWindow extends JFrame {
         itemsTableModel = new DefaultTableModel(new String[]{"ID", "Name", "Max Stack Size"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Make table read-only
+                return false;
             }
         };
         itemsTable = new JTable(itemsTableModel);
@@ -189,16 +199,93 @@ public class MainWindow extends JFrame {
     }
 
     private JPanel createBottomPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
+        // Left side - Save button
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton saveButton = new JButton("Save");
+        saveButton.addActionListener(e -> {
+            saveWorkspace();
+            JOptionPane.showMessageDialog(this, "Workspace saved!", "Saved", JOptionPane.INFORMATION_MESSAGE);
+        });
+        leftPanel.add(saveButton);
+
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> closeEditor());
+        leftPanel.add(closeButton);
+
+        panel.add(leftPanel, BorderLayout.WEST);
+
+        // Right side - Generate button
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton generateButton = new JButton("Generate Mod");
         generateButton.setFont(new Font("Arial", Font.BOLD, 14));
         generateButton.setPreferredSize(new Dimension(150, 40));
         generateButton.addActionListener(e -> generateMod());
-        panel.add(generateButton);
+        rightPanel.add(generateButton);
+
+        panel.add(rightPanel, BorderLayout.EAST);
 
         return panel;
+    }
+
+    private void loadWorkspaceData() {
+        // Load settings into UI
+        modNameField.setText(workspace.getName());
+        modIdField.setText(workspace.getModId());
+        versionField.setText(workspace.getSettings().getVersion());
+        authorField.setText(workspace.getSettings().getAuthor());
+        descriptionArea.setText(workspace.getSettings().getDescription());
+        minecraftVersionLabel.setText(workspace.getMinecraftVersion() + " (" + workspace.getModLoader() + ")");
+
+        // Load items into table
+        itemsTableModel.setRowCount(0);
+        for (var element : workspace.getElements()) {
+            if (element instanceof ItemElement) {
+                ItemElement item = (ItemElement) element;
+                itemsTableModel.addRow(new Object[]{
+                    item.getId(),
+                    item.getName(),
+                    item.getMaxStackSize()
+                });
+            }
+        }
+    }
+
+    private void saveWorkspace() {
+        // Update workspace from UI
+        workspace.setName(modNameField.getText().trim());
+        workspace.getSettings().setVersion(versionField.getText().trim());
+        workspace.getSettings().setAuthor(authorField.getText().trim());
+        workspace.getSettings().setDescription(descriptionArea.getText().trim());
+
+        try {
+            workspaceManager.saveWorkspace(projectInfo.getPath(), workspace);
+            logger.debug("Workspace saved: {}", projectInfo.getName());
+        } catch (Exception e) {
+            logger.error("Failed to save workspace", e);
+            JOptionPane.showMessageDialog(this,
+                "Failed to save workspace:\n" + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void closeEditor() {
+        // Save before closing
+        saveWorkspace();
+
+        // Return to main menu
+        Window[] windows = Window.getWindows();
+        for (Window window : windows) {
+            if (window instanceof MainMenuWindow && !window.isVisible()) {
+                window.setVisible(true);
+                break;
+            }
+        }
+
+        dispose();
     }
 
     private void showAddItemDialog() {
@@ -267,6 +354,7 @@ public class MainWindow extends JFrame {
 
         workspace.addElement(item);
         itemsTableModel.addRow(new Object[]{id, name, maxStackSize});
+        saveWorkspace();
 
         logger.info("Added item: {} ({})", name, id);
     }
@@ -281,27 +369,20 @@ public class MainWindow extends JFrame {
         String id = (String) itemsTableModel.getValueAt(selectedRow, 0);
         workspace.getElements().removeIf(element -> element.getId().equals(id));
         itemsTableModel.removeRow(selectedRow);
+        saveWorkspace();
 
         logger.info("Removed item: {}", id);
     }
 
     private void generateMod() {
-        // Update workspace from UI fields
-        workspace.setName(modNameField.getText().trim());
-        workspace.setModId(modIdField.getText().trim());
-        workspace.setMinecraftVersion((String) minecraftVersionCombo.getSelectedItem());
-
-        WorkspaceSettings settings = workspace.getSettings();
-        settings.setVersion(versionField.getText().trim());
-        settings.setAuthor(authorField.getText().trim());
-        settings.setDescription(descriptionArea.getText().trim());
-        settings.setJavaPackage("com.example." + workspace.getModId().toLowerCase());
-
         // Validate
         if (workspace.getName().isEmpty() || workspace.getModId().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in Mod Name and Mod ID", "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+
+        // Save workspace before generating
+        saveWorkspace();
 
         // Choose output directory
         JFileChooser chooser = new JFileChooser();
@@ -328,7 +409,7 @@ public class MainWindow extends JFrame {
             protected void done() {
                 try {
                     GeneratedMod result = get();
-                    JOptionPane.showMessageDialog(MainWindow.this,
+                    JOptionPane.showMessageDialog(WorkspaceEditorWindow.this,
                             "Mod generated successfully!\n" +
                                     "Files: " + result.getFiles().size() + "\n" +
                                     "Location: " + outputPath,
@@ -337,7 +418,7 @@ public class MainWindow extends JFrame {
                     logger.info("Mod generation completed: {}", outputPath);
                 } catch (Exception ex) {
                     logger.error("Failed to generate mod", ex);
-                    JOptionPane.showMessageDialog(MainWindow.this,
+                    JOptionPane.showMessageDialog(WorkspaceEditorWindow.this,
                             "Failed to generate mod:\n" + ex.getMessage(),
                             "Error",
                             JOptionPane.ERROR_MESSAGE);

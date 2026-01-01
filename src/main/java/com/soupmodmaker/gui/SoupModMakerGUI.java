@@ -19,8 +19,8 @@ public class SoupModMakerGUI {
 
         // Run GUI on Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
-            MainWindow window = new MainWindow();
-            window.setVisible(true);
+            MainMenuWindow mainMenu = new MainMenuWindow();
+            mainMenu.setVisible(true);
         });
     }
 }
