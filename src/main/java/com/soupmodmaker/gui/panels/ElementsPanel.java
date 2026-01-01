@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -427,6 +428,7 @@ public class ElementsPanel extends JPanel {
 
     /**
      * Element editor panel with Save/Save & Close buttons.
+     * Uses a consistent structure across all element types.
      */
     private class ElementEditorPanel extends JPanel {
         private final WorkspaceElement element;
@@ -446,8 +448,11 @@ public class ElementsPanel extends JPanel {
             setLayout(new BorderLayout(10, 10));
             setBorder(new EmptyBorder(15, 15, 15, 15));
 
-            // Editor content
-            add(createEditorContent(), BorderLayout.CENTER);
+            // Scrollable editor content
+            JScrollPane scrollPane = new JScrollPane(createEditorContent());
+            scrollPane.setBorder(null);
+            scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+            add(scrollPane, BorderLayout.CENTER);
 
             // Bottom buttons
             add(createButtonPanel(), BorderLayout.SOUTH);
@@ -457,45 +462,263 @@ public class ElementsPanel extends JPanel {
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-            JLabel titleLabel = new JLabel("Edit " + element.getType() + ": " + element.getName());
-            titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
-            titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            panel.add(titleLabel);
-            panel.add(Box.createVerticalStrut(20));
+            // Header with element type icon and name
+            JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            String elementType = getElementTypeFromElement(element);
+            JLabel iconLabel = new JLabel(getTypeIcon(elementType));
+            iconLabel.setFont(iconLabel.getFont().deriveFont(24f));
+            headerPanel.add(iconLabel);
 
+            JLabel titleLabel = new JLabel(element.getName());
+            titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18f));
+            headerPanel.add(titleLabel);
+
+            JLabel typeLabel = new JLabel("(" + elementType + ")");
+            typeLabel.setForeground(Color.GRAY);
+            headerPanel.add(typeLabel);
+
+            headerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            panel.add(headerPanel);
+            panel.add(Box.createVerticalStrut(15));
+
+            // General Properties (common to all types)
+            panel.add(createGeneralPropertiesSection());
+            panel.add(Box.createVerticalStrut(10));
+
+            // Type-specific properties
             if (element instanceof ItemElement) {
-                panel.add(createItemEditorFields((ItemElement) element));
+                panel.add(createItemPropertiesSection((ItemElement) element));
             } else {
-                JLabel comingSoonLabel = new JLabel("<html><i>Editor for " + element.getType() + " coming soon!</i></html>");
-                comingSoonLabel.setForeground(Color.GRAY);
-                comingSoonLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-                panel.add(comingSoonLabel);
+                panel.add(createPlaceholderPropertiesSection(elementType));
             }
 
             return panel;
         }
 
-        private JPanel createItemEditorFields(ItemElement item) {
-            JPanel panel = new JPanel(new GridBagLayout());
-            panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        private String getElementTypeFromElement(WorkspaceElement element) {
+            Object type = element.getProperty("elementType");
+            if (type != null) {
+                return type.toString();
+            }
+            return element instanceof ItemElement ? "Item" : "Unknown";
+        }
 
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(5, 5, 5, 5);
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.anchor = GridBagConstraints.WEST;
+        private JPanel createGeneralPropertiesSection() {
+            JPanel section = createSection("General Properties");
 
-            gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-            panel.add(new JLabel("Max Stack Size:"), gbc);
-
-            gbc.gridx = 1; gbc.weightx = 1;
-            JSpinner stackSizeSpinner = new JSpinner(new SpinnerNumberModel(item.getMaxStackSize(), 1, 64, 1));
-            stackSizeSpinner.addChangeListener(e -> {
-                item.setProperty("maxStackSize", stackSizeSpinner.getValue());
+            // Display Name
+            addPropertyField(section, "Display Name:", element.getName(), value -> {
+                element.setName(value);
                 hasUnsavedChanges = true;
             });
-            panel.add(stackSizeSpinner, gbc);
 
-            return panel;
+            // Internal ID (read-only)
+            JTextField idField = new JTextField(element.getId());
+            idField.setEditable(false);
+            idField.setForeground(Color.GRAY);
+            addPropertyRow(section, "Internal ID:", idField);
+
+            return section;
+        }
+
+        private JPanel createItemPropertiesSection(ItemElement item) {
+            JPanel container = new JPanel();
+            container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+            container.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            // Visual Properties
+            JPanel visualSection = createSection("Visual Properties");
+            addPropertyField(visualSection, "Texture:",
+                (String) item.getProperty("texture", ""),
+                value -> {
+                    item.setProperty("texture", value);
+                    hasUnsavedChanges = true;
+                });
+            container.add(visualSection);
+            container.add(Box.createVerticalStrut(10));
+
+            // Behavior Properties
+            JPanel behaviorSection = createSection("Behavior Properties");
+
+            // Max Stack Size
+            addSpinnerField(behaviorSection, "Max Stack Size:",
+                item.getMaxStackSize(), 1, 64, 1,
+                value -> {
+                    item.setProperty("maxStackSize", value);
+                    hasUnsavedChanges = true;
+                });
+
+            // Durability
+            addSpinnerField(behaviorSection, "Durability:",
+                (Integer) item.getProperty("durability", 0), 0, 10000, 1,
+                value -> {
+                    item.setProperty("durability", value);
+                    hasUnsavedChanges = true;
+                });
+
+            // Creative Tab
+            String[] creativeTabs = {"Miscellaneous", "Building Blocks", "Decorations",
+                                     "Redstone", "Transportation", "Food", "Tools",
+                                     "Combat", "Brewing", "Materials"};
+            addComboBoxField(behaviorSection, "Creative Tab:", creativeTabs,
+                (String) item.getProperty("creativeTab", "Miscellaneous"),
+                value -> {
+                    item.setProperty("creativeTab", value);
+                    hasUnsavedChanges = true;
+                });
+
+            // Is Food
+            addCheckboxField(behaviorSection, "Is Food",
+                (Boolean) item.getProperty("isFood", false),
+                value -> {
+                    item.setProperty("isFood", value);
+                    hasUnsavedChanges = true;
+                });
+
+            container.add(behaviorSection);
+            return container;
+        }
+
+        private JPanel createPlaceholderPropertiesSection(String elementType) {
+            JPanel container = new JPanel();
+            container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+            container.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JPanel section = createSection(elementType + " Properties");
+
+            // Show type-specific placeholder properties based on element type
+            switch (elementType) {
+                case "Block" -> addBlockPlaceholderFields(section);
+                case "Tool" -> addToolPlaceholderFields(section);
+                case "Armor" -> addArmorPlaceholderFields(section);
+                case "Food" -> addFoodPlaceholderFields(section);
+                case "Entity" -> addEntityPlaceholderFields(section);
+                default -> {
+                    JLabel label = new JLabel("<html><i>Properties for " + elementType + " will be available soon!</i></html>");
+                    label.setForeground(Color.GRAY);
+                    section.add(label);
+                }
+            }
+
+            container.add(section);
+            return container;
+        }
+
+        private void addBlockPlaceholderFields(JPanel section) {
+            addPropertyField(section, "Texture:", "", value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Hardness:", 1.5, 0, 100, 0.5, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Resistance:", 10.0, 0, 1000, 1, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Light Level:", 0, 0, 15, 1, value -> hasUnsavedChanges = true);
+            addCheckboxField(section, "Needs Tool to Harvest", false, value -> hasUnsavedChanges = true);
+        }
+
+        private void addToolPlaceholderFields(JPanel section) {
+            addPropertyField(section, "Texture:", "", value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Durability:", 250, 1, 10000, 1, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Efficiency:", 6.0, 0, 20, 0.5, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Damage:", 4.0, 0, 20, 0.5, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Harvest Level:", 2, 0, 5, 1, value -> hasUnsavedChanges = true);
+        }
+
+        private void addArmorPlaceholderFields(JPanel section) {
+            addPropertyField(section, "Texture:", "", value -> hasUnsavedChanges = true);
+            String[] armorSlots = {"Helmet", "Chestplate", "Leggings", "Boots"};
+            addComboBoxField(section, "Armor Slot:", armorSlots, "Helmet", value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Armor Points:", 2, 0, 20, 1, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Toughness:", 0.0, 0, 10, 0.5, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Durability:", 100, 1, 10000, 1, value -> hasUnsavedChanges = true);
+        }
+
+        private void addFoodPlaceholderFields(JPanel section) {
+            addPropertyField(section, "Texture:", "", value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Hunger Restored:", 4, 0, 20, 1, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Saturation:", 0.6, 0, 2, 0.1, value -> hasUnsavedChanges = true);
+            addCheckboxField(section, "Always Edible", false, value -> hasUnsavedChanges = true);
+            addCheckboxField(section, "Fast to Eat", false, value -> hasUnsavedChanges = true);
+        }
+
+        private void addEntityPlaceholderFields(JPanel section) {
+            addPropertyField(section, "Model:", "", value -> hasUnsavedChanges = true);
+            addPropertyField(section, "Texture:", "", value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Health:", 20.0, 1, 1000, 1, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Damage:", 2.0, 0, 50, 0.5, value -> hasUnsavedChanges = true);
+            addSpinnerField(section, "Speed:", 0.25, 0, 2, 0.05, value -> hasUnsavedChanges = true);
+        }
+
+        private JPanel createSection(String title) {
+            JPanel section = new JPanel();
+            section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+            section.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.GRAY),
+                title,
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Segoe UI", Font.BOLD, 12)
+            ));
+            section.setAlignmentX(Component.LEFT_ALIGNMENT);
+            return section;
+        }
+
+        private void addPropertyField(JPanel section, String label, String initialValue,
+                                      java.util.function.Consumer<String> onChange) {
+            JTextField textField = new JTextField(initialValue);
+            textField.addActionListener(e -> onChange.accept(textField.getText()));
+            textField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                public void changedUpdate(javax.swing.event.DocumentEvent e) { onChange.accept(textField.getText()); }
+                public void removeUpdate(javax.swing.event.DocumentEvent e) { onChange.accept(textField.getText()); }
+                public void insertUpdate(javax.swing.event.DocumentEvent e) { onChange.accept(textField.getText()); }
+            });
+            addPropertyRow(section, label, textField);
+        }
+
+        private void addSpinnerField(JPanel section, String label, Number initialValue,
+                                     Number min, Number max, Number step,
+                                     java.util.function.Consumer<Number> onChange) {
+            SpinnerNumberModel model;
+            if (initialValue instanceof Double || min instanceof Double || max instanceof Double) {
+                model = new SpinnerNumberModel(initialValue.doubleValue(),
+                    min.doubleValue(), max.doubleValue(), step.doubleValue());
+            } else {
+                model = new SpinnerNumberModel(initialValue.intValue(),
+                    min.intValue(), max.intValue(), step.intValue());
+            }
+
+            JSpinner spinner = new JSpinner(model);
+            spinner.addChangeListener(e -> onChange.accept((Number) spinner.getValue()));
+            addPropertyRow(section, label, spinner);
+        }
+
+        private void addComboBoxField(JPanel section, String label, String[] options,
+                                      String initialValue, java.util.function.Consumer<String> onChange) {
+            JComboBox<String> comboBox = new JComboBox<>(options);
+            comboBox.setSelectedItem(initialValue);
+            comboBox.addActionListener(e -> onChange.accept((String) comboBox.getSelectedItem()));
+            addPropertyRow(section, label, comboBox);
+        }
+
+        private void addCheckboxField(JPanel section, String label, boolean initialValue,
+                                      java.util.function.Consumer<Boolean> onChange) {
+            JCheckBox checkBox = new JCheckBox(label);
+            checkBox.setSelected(initialValue);
+            checkBox.addActionListener(e -> onChange.accept(checkBox.isSelected()));
+            section.add(checkBox);
+            section.add(Box.createVerticalStrut(5));
+        }
+
+        private void addPropertyRow(JPanel section, String labelText, JComponent component) {
+            JPanel row = new JPanel(new BorderLayout(10, 0));
+            row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+
+            JLabel label = new JLabel(labelText);
+            label.setPreferredSize(new Dimension(150, 25));
+            row.add(label, BorderLayout.WEST);
+
+            component.setPreferredSize(new Dimension(250, 25));
+            row.add(component, BorderLayout.CENTER);
+
+            row.setAlignmentX(Component.LEFT_ALIGNMENT);
+            section.add(row);
+            section.add(Box.createVerticalStrut(5));
         }
 
         private JPanel createButtonPanel() {
