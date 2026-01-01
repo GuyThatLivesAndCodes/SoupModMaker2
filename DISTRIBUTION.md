@@ -64,19 +64,19 @@ gradle build
 # JAR will be in: build/libs/soupmodmaker2-0.1.0-SNAPSHOT.jar
 ```
 
-### Building the Shadow JAR (Recommended)
+### Building the Fat JAR (Recommended)
 
 ```bash
 # Build fat JAR with all dependencies
-gradle shadowJar
+gradle fatJar
 
-# Creates: build/libs/soupmodmaker2-0.1.0-SNAPSHOT.jar
+# Creates: build/libs/soupmodmaker2-all-0.1.0-SNAPSHOT.jar
 # This JAR is fully self-contained and can run anywhere!
 ```
 
 ### Distribution
 
-The shadow JAR includes:
+The fat JAR includes:
 - ✅ All application code
 - ✅ FreeMarker templates
 - ✅ Gson for JSON
@@ -154,12 +154,12 @@ chmod +x startup.sh
 
 ### "No main manifest attribute"
 - You're using the wrong JAR
-- Use the shadow JAR: `gradle shadowJar`
-- File: `build/libs/soupmodmaker2-0.1.0-SNAPSHOT.jar`
+- Use the fat JAR: `gradle fatJar`
+- File: `build/libs/soupmodmaker2-all-0.1.0-SNAPSHOT.jar`
 
 ### "Class not found"
 - Dependencies not bundled
-- Build with: `gradle shadowJar` (not just `gradle jar`)
+- Build with: `gradle fatJar` (not just `gradle jar`)
 
 ### Double-click doesn't work
 - Use command line: `java -jar soupmodmaker2-*.jar`
@@ -171,8 +171,8 @@ chmod +x startup.sh
 
 When creating a release:
 
-1. ✅ Build shadow JAR: `gradle shadowJar`
-2. ✅ Test JAR: `java -jar build/libs/soupmodmaker2-*.jar`
+1. ✅ Build fat JAR: `gradle fatJar`
+2. ✅ Test JAR: `java -jar build/libs/soupmodmaker2-all-*.jar`
 3. ✅ Include startup scripts (Windows .bat, Unix .sh)
 4. ✅ Include this README
 5. ✅ Tag release with version number

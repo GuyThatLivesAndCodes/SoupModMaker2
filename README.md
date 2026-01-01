@@ -48,7 +48,7 @@ See **[DISTRIBUTION.md](DISTRIBUTION.md)** for full usage guide.
 gradle build
 
 # Build executable JAR (recommended)
-gradle shadowJar
+gradle fatJar
 
 # Run the demo (generates a test mod)
 gradle run

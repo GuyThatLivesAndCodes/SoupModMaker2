@@ -20,7 +20,7 @@ echo Starting SoupModMaker2...
 echo.
 
 REM Run the JAR with any command-line arguments passed to this script
-java -jar soupmodmaker2-0.1.0-SNAPSHOT.jar %*
+java -jar soupmodmaker2-all-0.1.0-SNAPSHOT.jar %*
 
 echo.
 echo ================================================

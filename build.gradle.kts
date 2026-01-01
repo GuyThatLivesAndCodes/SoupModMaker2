@@ -1,7 +1,6 @@
 plugins {
     java
     application
-    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.soupmodmaker"
@@ -44,31 +43,36 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
-// Configure shadow (fat JAR) plugin
-tasks.shadowJar {
+// Create a fat JAR task (includes all dependencies)
+tasks.register<Jar>("fatJar") {
     archiveBaseName.set("soupmodmaker2")
-    archiveClassifier.set("")
+    archiveClassifier.set("all")
     archiveVersion.set(project.version.toString())
 
     manifest {
         attributes(
             "Main-Class" to "com.soupmodmaker.cli.SoupModMakerCLI",
             "Implementation-Title" to "SoupModMaker2",
-            "Implementation-Version" to project.version,
-            "Multi-Release" to "true"
+            "Implementation-Version" to project.version
         )
     }
 
-    // Merge service files (for SLF4J)
-    mergeServiceFiles()
+    // Include all runtime dependencies
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+
+    // Include compiled classes
+    with(tasks.jar.get())
+
+    // Avoid duplicate META-INF files
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Make build task also create the shadow JAR
+// Make build also create the fat JAR
 tasks.build {
-    dependsOn(tasks.shadowJar)
+    dependsOn("fatJar")
 }
 
-// Configure the JAR task to create a manifest
+// Configure the regular JAR task to have a manifest
 tasks.jar {
     manifest {
         attributes(
