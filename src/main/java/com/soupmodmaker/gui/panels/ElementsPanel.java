@@ -528,8 +528,8 @@ public class ElementsPanel extends JPanel {
 
             // Visual Properties
             JPanel visualSection = createSection("Visual Properties");
-            addPropertyField(visualSection, "Texture:",
-                (String) item.getProperty("texture", ""),
+            String texture = getStringProperty(item, "texture", "");
+            addPropertyField(visualSection, "Texture:", texture,
                 value -> {
                     item.setProperty("texture", value);
                     hasUnsavedChanges = true;
@@ -549,8 +549,9 @@ public class ElementsPanel extends JPanel {
                 });
 
             // Durability
+            int durability = getIntProperty(item, "durability", 0);
             addSpinnerField(behaviorSection, "Durability:",
-                (Integer) item.getProperty("durability", 0), 0, 10000, 1,
+                durability, 0, 10000, 1,
                 value -> {
                     item.setProperty("durability", value);
                     hasUnsavedChanges = true;
@@ -560,16 +561,16 @@ public class ElementsPanel extends JPanel {
             String[] creativeTabs = {"Miscellaneous", "Building Blocks", "Decorations",
                                      "Redstone", "Transportation", "Food", "Tools",
                                      "Combat", "Brewing", "Materials"};
-            addComboBoxField(behaviorSection, "Creative Tab:", creativeTabs,
-                (String) item.getProperty("creativeTab", "Miscellaneous"),
+            String creativeTab = getStringProperty(item, "creativeTab", "Miscellaneous");
+            addComboBoxField(behaviorSection, "Creative Tab:", creativeTabs, creativeTab,
                 value -> {
                     item.setProperty("creativeTab", value);
                     hasUnsavedChanges = true;
                 });
 
             // Is Food
-            addCheckboxField(behaviorSection, "Is Food",
-                (Boolean) item.getProperty("isFood", false),
+            boolean isFood = getBooleanProperty(item, "isFood", false);
+            addCheckboxField(behaviorSection, "Is Food", isFood,
                 value -> {
                     item.setProperty("isFood", value);
                     hasUnsavedChanges = true;
@@ -577,6 +578,28 @@ public class ElementsPanel extends JPanel {
 
             container.add(behaviorSection);
             return container;
+        }
+
+        // Helper methods to safely get properties with defaults
+        private String getStringProperty(WorkspaceElement element, String key, String defaultValue) {
+            Object value = element.getProperty(key);
+            return value != null ? value.toString() : defaultValue;
+        }
+
+        private int getIntProperty(WorkspaceElement element, String key, int defaultValue) {
+            Object value = element.getProperty(key);
+            if (value instanceof Number) {
+                return ((Number) value).intValue();
+            }
+            return defaultValue;
+        }
+
+        private boolean getBooleanProperty(WorkspaceElement element, String key, boolean defaultValue) {
+            Object value = element.getProperty(key);
+            if (value instanceof Boolean) {
+                return (Boolean) value;
+            }
+            return defaultValue;
         }
 
         private JPanel createPlaceholderPropertiesSection(String elementType) {
