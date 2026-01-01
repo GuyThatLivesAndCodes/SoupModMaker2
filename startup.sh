@@ -2,6 +2,7 @@
 
 echo "================================================"
 echo "  SoupModMaker2 - Minecraft Mod Generator"
+echo "  Starting GUI..."
 echo "================================================"
 echo
 

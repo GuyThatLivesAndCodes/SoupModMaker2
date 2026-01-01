@@ -27,7 +27,7 @@ jobs:
       run: gradle build --no-daemon
 
     - name: Generate test mod
-      run: gradle run --no-daemon --args='--full-demo'
+      run: gradle runCli --no-daemon --args='--full-demo'
 
     - name: Upload generated mod
       if: success()

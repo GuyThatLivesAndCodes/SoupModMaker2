@@ -30,8 +30,8 @@ jobs:
     - name: Run tests
       run: gradle test --no-daemon
 
-    - name: Run application demo
-      run: gradle run --no-daemon
+    - name: Run application demo (CLI mode)
+      run: gradle runCli --no-daemon
       continue-on-error: true
 
     - name: Upload build artifacts

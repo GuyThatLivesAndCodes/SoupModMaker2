@@ -18,9 +18,9 @@ SoupModMaker2 is an open-source Minecraft mod creation tool designed to surpass 
 
 ## Status
 
-**Current Phase:** Phase 2 Complete - Working Forge 1.12.2 Generator! ✅
+**Current Phase:** Phase 3 In Progress - GUI Complete! ✅
 
-SoupModMaker2 can now generate complete, buildable Forge 1.12.2 mods with clean code!
+SoupModMaker2 now features a **graphical user interface** for creating mods with clean, professional code!
 
 ---
 
@@ -31,13 +31,19 @@ SoupModMaker2 can now generate complete, buildable Forge 1.12.2 mods with clean 
 ```bash
 # Download the JAR from GitHub Releases, then:
 
-# Run the demo
-java -jar soupmodmaker2-0.1.0-SNAPSHOT.jar
+# Launch the GUI (recommended)
+java -jar soupmodmaker2-all-0.1.0-SNAPSHOT.jar
 
-# Or use the startup scripts
+# Or double-click the JAR file
+# Or use the startup scripts:
 ./startup.sh        # macOS/Linux
 startup.bat         # Windows
 ```
+
+The GUI provides an intuitive interface for:
+- Setting up mod workspace (name, ID, version, author)
+- Adding items with configurable properties
+- Generating complete Forge 1.12.2 mod projects
 
 See **[DISTRIBUTION.md](DISTRIBUTION.md)** for full usage guide.
 
@@ -50,15 +56,16 @@ gradle build
 # Build executable JAR (recommended)
 gradle fatJar
 
-# Run the demo (generates a test mod)
+# Run the GUI
 gradle run
 
-# Generate from example workspace
-gradle run --args="--full-demo"
+# Run CLI demo mode
+gradle runCli
+gradle runCli --args="--full-demo"
 
 # Check generated mod
 cd generated/testmod
-gradle build  # Build the generated Forge mod!
+./gradlew build  # Build the generated Forge mod!
 ```
 
 ## Documentation
@@ -106,8 +113,8 @@ gradle build  # Build the generated Forge mod!
 
 - **Language:** Java (native to Minecraft ecosystem)
 - **Build System:** Gradle
-- **Template Engine:** FreeMarker (or custom)
-- **UI Framework:** TBD (JavaFX/Swing/Electron)
+- **Template Engine:** FreeMarker
+- **UI Framework:** Swing (native Java GUI)
 
 ---
 
@@ -140,6 +147,7 @@ SoupModMaker2/
 │   │   │   │   └── export/            # Mod export ✅
 │   │   │   ├── generators/            # Version-specific generators ✅
 │   │   │   │   └── impl/              # Forge 1.12.2 ✅
+│   │   │   ├── gui/                   # Graphical user interface ✅
 │   │   │   ├── util/                  # Utilities
 │   │   │   └── cli/                   # Command-line interface ✅
 │   │   └── resources/
@@ -178,10 +186,13 @@ SoupModMaker2/
 - [x] Resource management (templates, mcmod.info)
 - [x] Build system integration
 
-### Phase 3: Advanced Features
+### Phase 3: GUI & User Experience (In Progress)
+- [x] Basic GUI interface (Swing)
+- [x] Workspace creation and editing
+- [x] Item management
 - [ ] Advanced mob AI builder
 - [ ] Event system
-- [ ] GUI designer
+- [ ] Block/entity designers
 
 ### Phase 4: Multi-Version Support
 - [ ] Legacy version generators

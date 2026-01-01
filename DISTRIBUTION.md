@@ -4,16 +4,25 @@
 
 ### Running the Application
 
-**Option 1: Double-click (GUI systems)**
-Simply double-click `soupmodmaker2-0.1.0-SNAPSHOT.jar` and it will run the demo.
+**Option 1: Double-click (recommended)**
+Simply double-click `soupmodmaker2-all-0.1.0-SNAPSHOT.jar` and it will launch the GUI.
 
-**Option 2: Command Line (recommended)**
+**Option 2: Using Startup Scripts**
 ```bash
-# Run the demo
-java -jar soupmodmaker2-0.1.0-SNAPSHOT.jar
+# Windows
+startup.bat
 
-# Generate from example workspace
-java -jar soupmodmaker2-0.1.0-SNAPSHOT.jar --full-demo
+# macOS/Linux
+./startup.sh
+```
+
+**Option 3: Command Line**
+```bash
+# Run the GUI
+java -jar soupmodmaker2-all-0.1.0-SNAPSHOT.jar
+
+# Run CLI demo mode (for developers)
+java -cp soupmodmaker2-all-0.1.0-SNAPSHOT.jar com.soupmodmaker.cli.SoupModMakerCLI
 ```
 
 ### Requirements
@@ -24,11 +33,14 @@ java -jar soupmodmaker2-0.1.0-SNAPSHOT.jar --full-demo
 
 ### What It Does
 
-When you run SoupModMaker2, it will:
+SoupModMaker2 provides a **graphical user interface** for creating Minecraft mods:
 
-1. **Demonstrate workspace creation** - Shows how mod projects are structured
-2. **Generate clean code** - Displays generated Java code (better than MCreator!)
-3. **Create a complete Forge 1.12.2 mod** - Generates a full mod project in `generated/testmod/`
+1. **Design your mod** - Set mod name, ID, version, author, and description
+2. **Add items** - Create custom items with configurable properties
+3. **Generate clean code** - Produces professional Java code (better than MCreator!)
+4. **Choose output location** - Save your generated mod project anywhere you want
+
+The CLI mode (for developers) demonstrates the code generation pipeline.
 
 ### Using the Generated Mod
 

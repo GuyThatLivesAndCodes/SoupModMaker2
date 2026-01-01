@@ -36,6 +36,15 @@ tasks.test {
 }
 
 application {
+    // Default to GUI - use ./gradlew runCli for CLI mode
+    mainClass.set("com.soupmodmaker.gui.SoupModMakerGUI")
+}
+
+// Add task to run CLI mode
+tasks.register<JavaExec>("runCli") {
+    group = "application"
+    description = "Run SoupModMaker2 in CLI mode"
+    classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("com.soupmodmaker.cli.SoupModMakerCLI")
 }
 
@@ -51,7 +60,7 @@ tasks.register<Jar>("fatJar") {
 
     manifest {
         attributes(
-            "Main-Class" to "com.soupmodmaker.cli.SoupModMakerCLI",
+            "Main-Class" to "com.soupmodmaker.gui.SoupModMakerGUI",
             "Implementation-Title" to "SoupModMaker2",
             "Implementation-Version" to project.version
         )
@@ -76,7 +85,7 @@ tasks.build {
 tasks.jar {
     manifest {
         attributes(
-            "Main-Class" to "com.soupmodmaker.cli.SoupModMakerCLI"
+            "Main-Class" to "com.soupmodmaker.gui.SoupModMakerGUI"
         )
     }
 }
