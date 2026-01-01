@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "workspace": {
+    "name": "TestMod",
+    "modId": "testmod",
+    "minecraftVersion": "1.12.2",
+    "modLoader": "forge",
+    "settings": {
+      "javaPackage": "com.example.testmod",
+      "author": "Your Name",
+      "description": "A test mod created with SoupModMaker2",
+      "version": "1.0.0",
+      "license": "MIT"
+    }
+  },
+  "elements": [
+    {
+      "type": "item",
+      "id": "ruby",
+      "name": "Ruby",
+      "properties": {
+        "maxStackSize": 64,
+        "rarity": "COMMON",
+        "glows": false
+      }
+    },
+    {
+      "type": "item",
+      "id": "sapphire",
+      "name": "Sapphire",
+      "properties": {
+        "maxStackSize": 64,
+        "rarity": "RARE",
+        "glows": true
+      }
+    }
+  ]
+}
