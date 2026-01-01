@@ -31,7 +31,7 @@ jobs:
       run: gradle test --no-daemon
 
     - name: Run application demo
-      run: gradle run --no-daemon --args=""
+      run: gradle run --no-daemon
       continue-on-error: true
 
     - name: Upload build artifacts
