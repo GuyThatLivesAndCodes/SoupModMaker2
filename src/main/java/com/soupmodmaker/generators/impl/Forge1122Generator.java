@@ -70,6 +70,9 @@ public class Forge1122Generator implements VersionGenerator {
         // Generate gradle wrapper files
         generateGradleWrapper(outputPath, generatedMod);
 
+        // Generate README
+        generateReadme(workspace, outputPath, generatedMod);
+
         logger.info("Generated {} files for mod: {}", generatedMod.getFiles().size(), workspace.getName());
 
         return generatedMod;
@@ -218,9 +221,62 @@ public class Forge1122Generator implements VersionGenerator {
     }
 
     private void generateGradleWrapper(Path outputPath, GeneratedMod generatedMod) throws IOException {
-        // Create gradlew scripts (basic versions - user should run gradle wrapper)
-        String gradlewUnix = "#!/bin/bash\ngradle \"$@\"\n";
-        String gradlewWindows = "@echo off\r\ngradle %*\r\n";
+        // Create gradle wrapper directory
+        Path wrapperDir = outputPath.resolve("gradle/wrapper");
+        Files.createDirectories(wrapperDir);
+
+        // Create gradle-wrapper.properties for Gradle 4.10.3 (required for Forge 1.12.2)
+        String wrapperProperties = "distributionBase=GRADLE_USER_HOME\n" +
+                "distributionPath=wrapper/dists\n" +
+                "distributionUrl=https\\://services.gradle.org/distributions/gradle-4.10.3-bin.zip\n" +
+                "zipStoreBase=GRADLE_USER_HOME\n" +
+                "zipStorePath=wrapper/dists\n";
+
+        Path propsPath = wrapperDir.resolve("gradle-wrapper.properties");
+        Files.writeString(propsPath, wrapperProperties);
+        generatedMod.addFile(new GeneratedMod.GeneratedFile("gradle/wrapper/gradle-wrapper.properties", wrapperProperties, propsPath));
+
+        // Create gradlew scripts
+        String gradlewUnix = "#!/usr/bin/env sh\n\n" +
+                "##############################################################################\n" +
+                "##\n" +
+                "##  Gradle start up script for UN*X\n" +
+                "##\n" +
+                "##############################################################################\n\n" +
+                "# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.\n" +
+                "DEFAULT_JVM_OPTS='\"\"'\n\n" +
+                "APP_NAME=\"Gradle\"\n" +
+                "APP_BASE_NAME=`basename \"$0\"`\n\n" +
+                "# Determine the Java command to use to start the JVM.\n" +
+                "if [ -n \"$JAVA_HOME\" ] ; then\n" +
+                "    if [ -x \"$JAVA_HOME/jre/sh/java\" ] ; then\n" +
+                "        JAVACMD=\"$JAVA_HOME/jre/sh/java\"\n" +
+                "    else\n" +
+                "        JAVACMD=\"$JAVA_HOME/bin/java\"\n" +
+                "    fi\n" +
+                "else\n" +
+                "    JAVACMD=\"java\"\n" +
+                "fi\n\n" +
+                "exec \"$JAVACMD\" $JAVA_OPTS $GRADLE_OPTS \"-Dorg.gradle.appname=$APP_BASE_NAME\" -classpath \"gradle/wrapper/gradle-wrapper.jar\" org.gradle.wrapper.GradleWrapperMain \"$@\"\n";
+
+        String gradlewWindows = "@if \"%DEBUG%\" == \"\" @echo off\r\n" +
+                "@rem Gradle startup script for Windows\r\n\r\n" +
+                "set DIRNAME=%~dp0\r\n" +
+                "if \"%DIRNAME%\" == \"\" set DIRNAME=.\r\n" +
+                "set APP_BASE_NAME=%~n0\r\n" +
+                "set DEFAULT_JVM_OPTS=\r\n\r\n" +
+                "@rem Find java.exe\r\n" +
+                "if defined JAVA_HOME goto findJavaFromJavaHome\r\n\r\n" +
+                "set JAVA_EXE=java.exe\r\n" +
+                "%JAVA_EXE% -version >NUL 2>&1\r\n" +
+                "if \"%ERRORLEVEL%\" == \"0\" goto init\r\n\r\n" +
+                "echo ERROR: JAVA_HOME is not set and no 'java' command could be found\r\n" +
+                "exit /b 1\r\n\r\n" +
+                ":findJavaFromJavaHome\r\n" +
+                "set JAVA_HOME=%JAVA_HOME:\"=%\r\n" +
+                "set JAVA_EXE=%JAVA_HOME%/bin/java.exe\r\n\r\n" +
+                ":init\r\n" +
+                "\"%JAVA_EXE%\" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -classpath \"gradle\\wrapper\\gradle-wrapper.jar\" org.gradle.wrapper.GradleWrapperMain %*\r\n";
 
         Path gradlewPath = outputPath.resolve("gradlew");
         Path gradlewBatPath = outputPath.resolve("gradlew.bat");
@@ -238,7 +294,26 @@ public class Forge1122Generator implements VersionGenerator {
         generatedMod.addFile(new GeneratedMod.GeneratedFile("gradlew", gradlewUnix, gradlewPath));
         generatedMod.addFile(new GeneratedMod.GeneratedFile("gradlew.bat", gradlewWindows, gradlewBatPath));
 
-        logger.debug("Generated gradle wrapper scripts");
+        logger.debug("Generated gradle wrapper for Gradle 4.10.3 (Forge 1.12.2 compatible)");
+    }
+
+    private void generateReadme(Workspace workspace, Path outputPath, GeneratedMod generatedMod) throws Exception {
+        Map<String, Object> dataModel = new HashMap<>();
+        dataModel.put("modId", workspace.getModId());
+        dataModel.put("modName", workspace.getName());
+        dataModel.put("version", workspace.getSettings().getVersion());
+        dataModel.put("author", workspace.getSettings().getAuthor());
+        dataModel.put("description", workspace.getSettings().getDescription());
+
+        String content = templateRenderer.render("forge-1.12.2/README.md.ftl", dataModel);
+
+        String relativePath = "README.md";
+        Path filePath = outputPath.resolve(relativePath);
+
+        Files.writeString(filePath, content);
+        generatedMod.addFile(new GeneratedMod.GeneratedFile(relativePath, content, filePath));
+
+        logger.debug("Generated README.md");
     }
 
     private String capitalize(String str) {
