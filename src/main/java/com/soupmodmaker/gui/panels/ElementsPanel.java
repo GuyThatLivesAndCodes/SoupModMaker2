@@ -26,6 +26,7 @@ public class ElementsPanel extends JPanel {
     private JPanel elementsGrid;
     private JTabbedPane editorTabs;
     private JPanel elementsViewPanel;
+    private JPanel contentPanel;
 
     private WorkspaceElement selectedElement = null;
     private final Map<WorkspaceElement, ElementEditorPanel> openEditors = new HashMap<>();
@@ -47,18 +48,16 @@ public class ElementsPanel extends JPanel {
         // Left sidebar with action buttons
         splitPane.setLeftComponent(createSidebar());
 
-        // Right content area (tabs or grid)
-        JPanel contentPanel = new JPanel(new BorderLayout());
-
-        // Editor tabs (hidden initially)
-        editorTabs = new JTabbedPane();
-        editorTabs.setVisible(false);
+        // Right content area using CardLayout to switch between grid and editors
+        contentPanel = new JPanel(new CardLayout());
 
         // Elements grid view
         elementsViewPanel = createElementsView();
+        contentPanel.add(elementsViewPanel, "GRID");
 
-        contentPanel.add(editorTabs, BorderLayout.CENTER);
-        contentPanel.add(elementsViewPanel, BorderLayout.CENTER);
+        // Editor tabs (hidden initially)
+        editorTabs = new JTabbedPane();
+        contentPanel.add(editorTabs, "EDITORS");
 
         splitPane.setRightComponent(contentPanel);
 
@@ -361,13 +360,13 @@ public class ElementsPanel extends JPanel {
     }
 
     private void showEditorTabs() {
-        elementsViewPanel.setVisible(false);
-        editorTabs.setVisible(true);
+        CardLayout cardLayout = (CardLayout) contentPanel.getLayout();
+        cardLayout.show(contentPanel, "EDITORS");
     }
 
     private void hideEditorTabs() {
-        editorTabs.setVisible(false);
-        elementsViewPanel.setVisible(true);
+        CardLayout cardLayout = (CardLayout) contentPanel.getLayout();
+        cardLayout.show(contentPanel, "GRID");
     }
 
     private void renameSelectedElement() {

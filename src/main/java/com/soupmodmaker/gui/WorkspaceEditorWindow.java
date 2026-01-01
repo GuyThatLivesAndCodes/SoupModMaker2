@@ -56,13 +56,8 @@ public class WorkspaceEditorWindow extends JFrame {
         // Top toolbar
         mainPanel.add(createToolbar(), BorderLayout.NORTH);
 
-        // Center + Right panels
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setDividerLocation(700);
-        splitPane.setLeftComponent(createCenterPanel());
-        splitPane.setRightComponent(createRightPanel());
-
-        mainPanel.add(splitPane, BorderLayout.CENTER);
+        // Main content area - just the right panel with tabs
+        mainPanel.add(createRightPanel(), BorderLayout.CENTER);
 
         // Bottom action bar
         mainPanel.add(createActionBar(), BorderLayout.SOUTH);
@@ -148,9 +143,9 @@ public class WorkspaceEditorWindow extends JFrame {
 
     private JComponent createRightPanel() {
         rightTabbedPane = new JTabbedPane();
-        rightTabbedPane.setBorder(new EmptyBorder(10, 5, 10, 10));
+        rightTabbedPane.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Elements tab
+        // Elements tab (always selected by default)
         elementsPanel = new ElementsPanel(workspace, this::saveWorkspace);
         rightTabbedPane.addTab("📦 Elements", elementsPanel);
 
@@ -161,6 +156,9 @@ public class WorkspaceEditorWindow extends JFrame {
         // Console tab
         consolePanel = new ConsolePanel();
         rightTabbedPane.addTab("📋 Console", consolePanel);
+
+        // Ensure Elements tab is selected by default
+        rightTabbedPane.setSelectedIndex(0);
 
         return rightTabbedPane;
     }
