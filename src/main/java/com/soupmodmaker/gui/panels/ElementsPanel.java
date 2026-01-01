@@ -202,7 +202,8 @@ public class ElementsPanel extends JPanel {
         // Element type selection dialog
         String[] elementTypes = {"Item", "Block", "Tool", "Armor", "Food", "Entity"};
 
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Create New Element", true);
+        Frame owner = (Frame) SwingUtilities.getWindowAncestor(this);
+        JDialog dialog = new JDialog(owner, "Create New Element", true);
         dialog.setLayout(new BorderLayout(10, 10));
         dialog.setSize(400, 300);
         dialog.setLocationRelativeTo(this);
@@ -242,7 +243,8 @@ public class ElementsPanel extends JPanel {
     }
 
     private void showCreateElementNameDialog(String type) {
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Create " + type, true);
+        Frame owner = (Frame) SwingUtilities.getWindowAncestor(this);
+        JDialog dialog = new JDialog(owner, "Create " + type, true);
         dialog.setLayout(new GridBagLayout());
         dialog.setSize(350, 200);
         dialog.setLocationRelativeTo(this);
@@ -304,11 +306,13 @@ public class ElementsPanel extends JPanel {
             return item;
         }
 
-        // Placeholder for other types
-        WorkspaceElement element = new WorkspaceElement(type.toLowerCase());
-        element.setId(id);
-        element.setName(name);
-        return element;
+        // Use ItemElement as placeholder for other types until they're implemented
+        ItemElement placeholder = new ItemElement();
+        placeholder.setId(id);
+        placeholder.setName(name + " (" + type + ")");
+        placeholder.setProperty("elementType", type);
+        placeholder.setProperty("maxStackSize", 64);
+        return placeholder;
     }
 
     private void editSelectedElement() {
