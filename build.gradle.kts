@@ -26,6 +26,9 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.9")
     runtimeOnly("ch.qos.logback:logback-classic:1.4.11")
 
+    // FlatLaf for modern dark theme
+    implementation("com.formdev:flatlaf:3.2.5")
+
     // JUnit 5 for testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testImplementation("org.mockito:mockito-core:5.5.0")
