@@ -26,9 +26,29 @@ SoupModMaker2 can now generate complete, buildable Forge 1.12.2 mods with clean 
 
 ## Quick Start
 
+### For Users (Using Pre-built JAR)
+
+```bash
+# Download the JAR from GitHub Releases, then:
+
+# Run the demo
+java -jar soupmodmaker2-0.1.0-SNAPSHOT.jar
+
+# Or use the startup scripts
+./startup.sh        # macOS/Linux
+startup.bat         # Windows
+```
+
+See **[DISTRIBUTION.md](DISTRIBUTION.md)** for full usage guide.
+
+### For Developers (Building from Source)
+
 ```bash
 # Build the project
 gradle build
+
+# Build executable JAR (recommended)
+gradle shadowJar
 
 # Run the demo (generates a test mod)
 gradle run
@@ -43,10 +63,11 @@ gradle build  # Build the generated Forge mod!
 
 ## Documentation
 
-### Research
-- **[MCreator Research](docs/MCREATOR_RESEARCH.md)** - Comprehensive analysis of MCreator's architecture, features, and limitations
+### User Guides
+- **[Distribution Guide](DISTRIBUTION.md)** - How to run and distribute SoupModMaker2
 
-### Planning
+### Developer Documentation
+- **[MCreator Research](docs/MCREATOR_RESEARCH.md)** - Comprehensive analysis of MCreator's architecture, features, and limitations
 - **[SoupModMaker2 Vision](docs/SOUPMODMAKER2_VISION.md)** - Project vision, goals, and design philosophy
 - **[Architecture](docs/ARCHITECTURE.md)** - Technical architecture and design decisions
 
